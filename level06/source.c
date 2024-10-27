@@ -3,71 +3,78 @@
 #include <unistd.h>  // for `ptrace`
 #include <sys/ptrace.h>
 
-int auth() {
-    unsigned int serial;        // Calculated serial number for authentication
-    unsigned int input_len;     // Length of the user-provided login name
-    unsigned int auth_value;    // Intermediate calculated value used in the authentication loop
-    char login[32];             // Buffer for the login name (up to 31 characters + null terminator)
-    char check_byte;            // Single byte for comparison at the end
+int auth(char *username, int serial) {
+    int calculated_serial; // Holds the computed serial value
+    int username_len;      // Length of the input username
 
-    // Remove newline from login
-    login[strcspn(login, "\n")] = '\0';
+    // Remove newline character from username
+    username[strcspn(username, "\n")] = '\0';
 
-    // Calculate the length of the login name, with a max length of 32
-    input_len = strnlen(login, 32);
-    if (input_len <= 5) {
-        // Login must be more than 5 characters
+    // Get length of the username, with a maximum of 32 characters
+    username_len = strnlen(username, 32);
+    
+    // If username is 5 characters or fewer, authentication fails
+    if (username_len <= 5) {
         return 1;
     }
 
-    // Check for a debugger; if detected, exit early
+    // Anti-debugging check: detect if debugger is attached
     if (ptrace(PTRACE_TRACEME, 0, NULL, 0) == -1) {
-        puts("Debugging detected! Exiting.");
+        puts("\x1B[32m.---------------------------.");
+        puts("\x1B[31m| !! TAMPERING DETECTED !!  |");
+        puts("\x1B[32m'---------------------------'");
         return 1;
     }
 
-    // Initialize serial number with a specific calculation based on the 4th character of the login
-    auth_value = (login[3] ^ 4919) + 6221293;
+    // Initialize calculated serial using the 4th character of username
+    calculated_serial = (username[3] ^ 0x1337) + 6221293;
 
-    // Loop over each character in the login name to perform further calculations
-    for (unsigned int i = 0; i < input_len; i++) {
-        unsigned int temp_value = login[i] ^ auth_value;
-        auth_value += temp_value - (((temp_value * 2284010283U) >> 32) >> 1) * 1337;
+    // Loop through each character in the username to update `calculated_serial`
+    for (int i = 0; i < username_len; ++i) {
+        // Check for control characters; if found, authentication fails
+        if (username[i] <= 31) {
+            return 1;
+        }
+
+        // Update `calculated_serial` based on each character in username
+        calculated_serial += (calculated_serial ^ (unsigned int)username[i]) % 0x539;
     }
 
-    // The `check_byte` should match the final `auth_value` for successful authentication
-    return (check_byte == auth_value) ? 0 : 1;
+    // Authentication succeeds only if the calculated serial matches the provided serial
+    return serial != calculated_serial;
 }
 
 int main() {
-    char login[32];         // Buffer to store the user login name
-    unsigned int serial;    // User-provided serial number
+    char username[28];      // Buffer for storing the username
+    int serial;             // Variable to hold the user-provided serial
 
-    // Print the welcome banner
+    // Print welcome banner
     puts("***********************************");
     puts("*\t\tlevel06\t\t  *");
     puts("***********************************");
 
-    // Prompt for login name and read user input
+    // Prompt user for their login name
     printf("-> Enter Login: ");
-    fgets(login, sizeof(login), stdin);
+    fgets(username, sizeof(username), stdin);
 
-    // Inform the user of a new account detection
+    // Inform user of new account detection
     puts("***********************************");
     puts("***** NEW ACCOUNT DETECTED ********");
     puts("***********************************");
 
-    // Prompt for the serial number and read it
+    // Prompt user for their serial number
     printf("-> Enter Serial: ");
-    scanf("%u", &serial);
+    scanf("%d", &serial);
 
-    // Check if authentication succeeds
-    if (auth() == 0) {
-        puts("Authenticated!");
-        system("/bin/sh");  // Give the user a shell on successful authentication
-    } else {
-        puts("Authentication failed!");
+    // Attempt to authenticate using provided username and serial
+    if (auth(username, serial)) {
+        // If authentication fails, exit with failure code
+        return 1;
     }
+
+    // If authentication succeeds, grant access by opening a shell
+    puts("Authenticated!");
+    system("/bin/sh");
 
     return 0;
 }
