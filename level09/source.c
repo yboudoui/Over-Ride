@@ -1,81 +1,81 @@
-void __cdecl secret_backdoor( void )
-{
-    uint64_t local_0x88; // [rsp-136]
+#include <stdio.h>
+#include <string.h>
 
-    fgets_2( &local_0x88, 128, stdin[0] );
-    system_2( &local_0x88 );
+// Reads a command from stdin and executes it, making it a potential security risk.
+void secret_backdoor(void) {
+    char command_buffer[128];
+
+    // Get user input and store it in the command buffer (size limit: 128)
+    fgets(command_buffer, 128, stdin);
+
+    // Execute the command, risky as it allows arbitrary command execution
+    system(command_buffer);
 }
 
-void __cdecl handle_msg( void )
-{
-    uint64_t local_0xC8; // [rsp-200]
-    uint64_t local_0x3C; // [rsp-60]
-    uint64_t local_0x34; // [rsp-52]
-    uint64_t local_0x2C; // [rsp-44]
-    uint64_t local_0x24; // [rsp-36]
-    uint64_t local_0x1C; // [rsp-28]
-    uint32_t local_0x14; // [rsp-20]
 
-    local_0x3C = 0;
-    local_0x34 = 0;
-    local_0x2C = 0;
-    local_0x24 = 0;
-    local_0x1C = 0;
-    local_0x14 = 140;
-    set_username( &local_0xC8 );
-    set_msg( &local_0xC8 );
-    puts_2( ">: Msg sent!" );
+// Handles a message by setting up the username and message buffers
+void handle_msg(void) {
+    char message_buffer[140];
+    long padding1 = 0, padding2 = 0, padding3 = 0, padding4 = 0;
+    int message_length = 140;
+
+    // Set up username and message, then confirm message sent
+    set_username(message_buffer);
+    set_msg(message_buffer);
+    puts(">: Msg sent!");
 }
 
-void __cdecl set_msg( int64_t p1 )
-{
-    uint64_t local_0x408; // [rsp-1032]
-    int64_t v2; // rcx
-    void * v1; // rdi
 
-    v1 = &local_0x408;
-    v2 = 128;
-    while( v2 != 0 ) {
-        *v1 = 0;
-        (uint8_t *)v1 += 8;
-        v2 += -1;
+// Sets up the message content with an input buffer, copying input to the message buffer
+void set_msg(char *message_buffer) {
+    char input_buffer[1024];
+
+    // Clear the input buffer (1024 bytes) by zeroing out each 8-byte block
+    memset(input_buffer, 0, 1024);
+
+    puts(">: Msg @Unix-Dude");
+    printf(">>: ");
+
+    // Get message input from user and store in input buffer (limit: 1024 bytes)
+    fgets(input_buffer, 1024, stdin);
+
+    // Copy input buffer content to message buffer with limit from specified length
+    strncpy(message_buffer, input_buffer, (long) *(int *)(message_buffer + 180));
+}
+
+
+// Sets up the username by reading input and copying it into the username buffer
+void set_username(char *username_buffer) {
+    char input_buffer[140];
+    int username_length;
+
+    // Clear input buffer (140 bytes) by zeroing out each 8-byte block
+    memset(input_buffer, 0, 140);
+
+    puts(">: Enter your username");
+    printf(">>: ");
+
+    // Get username input from user and store in input buffer (limit: 128 bytes)
+    fgets(input_buffer, 128, stdin);
+
+    // Copy input buffer content to username buffer until end of input or limit (41 bytes)
+    for (username_length = 0; username_length < 41 && input_buffer[username_length] != '\0'; username_length++) {
+        username_buffer[username_length + 140] = input_buffer[username_length];
     }
-    puts_2( ">: Msg @Unix-Dude" );
-    printf_2( ">>: " );
-    fgets_2( &local_0x408, 1024, stdin[0] );
-    strncpy_2( p1, &local_0x408, (int32_t)*(p1 + 180) );
+
+    printf(">: Welcome, %s", username_buffer);
 }
 
-// VA=0x9cd
-void __cdecl set_username( int64_t p1 )
-{
-    uint8_t local_0x98; // [rsp-152]
-    uint32_t local_0xC; // [rsp-12]
-    int64_t v2; // rcx
-    void * v1; // rdi
 
-    v1 = &local_0x98;
-    v2 = 16;
-    while( v2 != 0 ) {
-        *v1 = 0;
-        (uint8_t *)v1 += 8;
-        v2 += -1;
-    }
-    puts_2( ">: Enter your username" );
-    printf_2( ">>: " );
-    fgets_2( &local_0x98, 128, stdin[0] );
-    local_0xC = 0;
-    while( (int32_t)local_0xC <= 40 && local_0x98[(int32_t)local_0xC] != 0 ) {
-        *((int32_t)local_0xC + p1 + 140) = (uint32_t)local_0x98[(int32_t)local_0xC];
-        local_0xC = (int32_t)local_0xC + 1;
-    }
-    printf_2( ">: Welcome, %s", p1 + 140 );
-}
+int main(void) {
+    // Display welcome banner
+    puts(
+        "--------------------------------------------\n"
+        "|   ~Welcome to l33t-m$n ~    v1337        |\n"
+        "--------------------------------------------"
+    );
 
-// VA=0xaa8
-int32_t __cdecl main( void )
-{
-    puts_2( "--------------------------------------------\n|   ~Welcome to l33t-m$n ~    v1337        |\n--------------------------------------------" );
+    // Begin handling message (sets up username and message)
     handle_msg();
     return 0;
 }
