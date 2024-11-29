@@ -80,7 +80,6 @@ Breakpoint 2, 0x08048866 in auth ()
 0x005f1afc in decimal = 6232828 (for user dylann)
 
 FLAG
-
 ```
 GbcPDRgsFK77LNnnuh7QyFYA2942Gp8yKj9KrWD8
 ```

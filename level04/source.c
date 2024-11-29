@@ -1,33 +1,57 @@
-int __cdecl main(int argc, const char **argv, const char **envp) {
-  int stat_loc; // [esp+1Ch] [ebp-9Ch] BYREF
-  char s[128];  // [esp+20h] [ebp-98h] BYREF
-  int v6;       // [esp+A0h] [ebp-18h]
-  int v7;       // [esp+A4h] [ebp-14h]
-  int v8;       // [esp+A8h] [ebp-10h]
-  __pid_t v9;   // [esp+ACh] [ebp-Ch]
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/ptrace.h>
+#include <sys/prctl.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <signal.h>
 
-  v9 = fork();
-  memset(s, 0, sizeof(s));
-  v8 = 0;
-  stat_loc = 0;
-  if (v9) {
-    do {
-      wait(&stat_loc);
-      v6 = stat_loc;
-      if ((stat_loc & 0x7F) == 0 ||
-          (v7 = stat_loc, (char)((stat_loc & 0x7F) + 1) >> 1 > 0)) {
-        puts("child is exiting...");
-        return 0;
-      }
-      v8 = ptrace(PTRACE_PEEKUSER, v9, 44, 0);
-    } while (v8 != 11);
-    puts("no exec() for you");
-    kill(v9, 9);
-  } else {
-    prctl(1, 1);
-    ptrace(PTRACE_TRACEME, 0, 0, 0);
-    puts("Give me some shellcode, k");
-    gets(s);
-  }
-  return 0;
+int main(int argc, const char **argv, const char **envp) {
+    int status;           // To store the status of the child process
+    char buffer[128];     // Buffer to hold user input
+    int syscall_number;   // For holding the result of ptrace syscall number
+    __pid_t child_pid;    // PID of the forked child process
+
+    // Fork a new process
+    child_pid = fork();
+
+    // Initialize the buffer and variables
+    memset(buffer, 0, sizeof(buffer));
+    syscall_number = 0;
+    status = 0;
+
+    if (child_pid) {  // Parent process
+        do {
+            // Wait for the child process to change state
+            wait(&status);
+
+            // Check if the child exited normally or received a fatal signal
+            if ((status & 0x7F) == 0 || ((status & 0x7F) + 1) >> 1 > 0) {
+                puts("Child is exiting...");
+                return 0;
+            }
+
+            // Use ptrace to check the system call being executed by the child
+            syscall_number = ptrace(PTRACE_PEEKUSER, child_pid, 44, 0);
+        } while (syscall_number != 11);  // Loop until `exec()` is attempted
+
+        // If `exec()` is detected, terminate the child
+        puts("No exec() for you");
+        kill(child_pid, SIGKILL);
+
+    } else {  // Child process
+        // Set up the process to be traced by the parent
+        prctl(PR_SET_PDEATHSIG, SIGKILL); // Ensure child dies if parent exits
+        ptrace(PTRACE_TRACEME, 0, 0, 0);
+
+        // Prompt the user for input
+        puts("Give me some shellcode, k");
+
+        // Read input into the buffer (vulnerable to buffer overflow)
+        gets(buffer);
+    }
+
+    return 0;
 }

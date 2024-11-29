@@ -9,7 +9,7 @@ int main(int argc, const char **argv, const char **envp)
   puts("* \t     -Level00 -\t\t  *");
   puts("***********************************");
   printf("Password:");
-  scanf("%d", &passsword);
+  scanf("%d", &password);
   if ( password == 5276 )
   {
     puts("\nAuthenticated!");

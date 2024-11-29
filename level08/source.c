@@ -1,46 +1,64 @@
-int __fastcall main(int argc, const char **argv, const char **envp)
-{
-  FILE *v4; // [rsp+28h] [rbp-88h]
-  FILE *stream; // [rsp+30h] [rbp-80h]
-  int fd; // [rsp+38h] [rbp-78h]
-  char buf; // [rsp+3Fh] [rbp-71h] BYREF
-  char dest[104]; // [rsp+40h] [rbp-70h] BYREF
-  unsigned __int64 v9; // [rsp+A8h] [rbp-8h]
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
-  v9 = __readfsqword(0x28u);
-  buf = -1;
-  if ( argc != 2 )
-    printf("Usage: %s filename\n", *argv);
-  v4 = fopen("./backups/.log", "w");
-  if ( !v4 )
-  {
-    printf("ERROR: Failed to open %s\n", "./backups/.log");
-    exit(1);
-  }
-  log_wrapper(v4, "Starting back up: ", argv[1]);
-  stream = fopen(argv[1], "r");
-  if ( !stream )
-  {
-    printf("ERROR: Failed to open %s\n", argv[1]);
-    exit(1);
-  }
-  strcpy(dest, "./backups/");
-  strncat(dest, argv[1], 99 - strlen(dest));
-  fd = open(dest, 193, 432LL);
-  if ( fd < 0 )
-  {
-    printf("ERROR: Failed to open %s%s\n", "./backups/", argv[1]);
-    exit(1);
-  }
-  while ( 1 )
-  {
-    buf = fgetc(stream);
-    if ( buf == -1 )
-      break;
-    write(fd, &buf, 1uLL);
-  }
-  log_wrapper(v4, "Finished back up ", argv[1]);
-  fclose(stream);
-  close(fd);
-  return 0;
+void log_wrapper(FILE *log_file, const char *message, const char *filename);
+
+int main(int argc, const char **argv, const char **envp) {
+    FILE *log_file;           // Log file pointer
+    FILE *input_file;         // Input file pointer
+    int backup_file_fd;       // File descriptor for the backup file
+    char buffer;              // Buffer to hold a single character
+    char backup_path[104];    // Path for the backup file
+
+    buffer = -1;  // Initialize the buffer
+    if (argc != 2) {
+        printf("Usage: %s filename\n", argv[0]);
+        return 1;
+    }
+
+    // Open the log file for writing
+    log_file = fopen("./backups/.log", "w");
+    if (!log_file) {
+        printf("ERROR: Failed to open %s\n", "./backups/.log");
+        exit(1);
+    }
+
+    // Log the start of the backup process
+    log_wrapper(log_file, "Starting back up: ", argv[1]);
+
+    // Open the input file for reading
+    input_file = fopen(argv[1], "r");
+    if (!input_file) {
+        printf("ERROR: Failed to open %s\n", argv[1]);
+        exit(1);
+    }
+
+    // Construct the backup file path
+    strcpy(backup_path, "./backups/");
+    strncat(backup_path, argv[1], sizeof(backup_path) - strlen(backup_path) - 1);
+
+    // Open the backup file for writing
+    backup_file_fd = open(backup_path, O_WRONLY | O_CREAT | O_TRUNC, 0660);
+    if (backup_file_fd < 0) {
+        printf("ERROR: Failed to open %s\n", backup_path);
+        exit(1);
+    }
+
+    // Copy content from the input file to the backup file
+    while ((buffer = fgetc(input_file)) != EOF) {
+        write(backup_file_fd, &buffer, 1);
+    }
+
+    // Log the completion of the backup process
+    log_wrapper(log_file, "Finished back up ", argv[1]);
+
+    // Close the files and cleanup
+    fclose(input_file);
+    close(backup_file_fd);
+    fclose(log_file);
+
+    return 0;
 }

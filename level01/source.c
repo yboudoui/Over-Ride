@@ -35,7 +35,7 @@ int  main(int argc, const char **argv, const char **envp)
   {
     puts("Enter Password: ");
     fgets(password_buffer, 100, stdin);
-    v5 = verify_user_pass(password_buffer);
+    verify_user_pass(password_buffer);
     puts("nope, incorrect password...\n");
   }
   return 1;
